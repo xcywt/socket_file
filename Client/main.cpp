@@ -11,6 +11,16 @@
 using namespace std;
 #define SEND_BLOCK_LEN 1024
 
+/*
+流程是：
+1）先发送一个“Begin”
+2）发送文件名字长度（字节）
+3）发送名字
+4）发送文件总长度
+5）循环读取文件，并发送。（同时也要等待服务器回复的“Continue...”）
+6）最后发送一个“End”
+*/
+
 int fopenTest()
 {
 	cout << "main() +++" << endl;
@@ -28,9 +38,9 @@ int fopenTest()
 	}
 
 	bool error = false;
-	// Primer��������İ�.pdf
-	// ���SDK.rar
-	// �й���ͼ.jpg
+	// Primer第五版中文版.pdf
+	// 大道SDK.rar
+	// 中国地图.jpg
 	// demo2.txt
 	// qt-opensource-windows-x86-msvc2013_64-5.8.0.exe
 	// C++_Primer_Five.pdf
@@ -45,7 +55,7 @@ int fopenTest()
 		printf("open file %s failed!\n", m_strfilename.c_str());
 		return 0;
 	}
-	//��ȡ�ļ���С
+	//获取文件大小
 	fseek(m_fp, 0, SEEK_END);
 	unsigned long long filesize = ftell(m_fp);
 	if (0 == filesize)
@@ -69,7 +79,7 @@ int fopenTest()
 		cout << "Send head error +++" << endl;
 	}
 
-	// �������ֳ���
+	// 发送名字长度
 	int nFileNameLen = strlen(strFileName);
 	ret = cClient.Send((char*)&nFileNameLen, 4);
 	if (ret <= 0)
@@ -77,7 +87,7 @@ int fopenTest()
 		error = true;
 		cout << "Send name len error +++" << endl;
 	}
-	// ��������
+	// 发送名字
 	ret = cClient.Send(strFileName, nFileNameLen);
 	if (ret <= 0)
 	{
@@ -85,7 +95,7 @@ int fopenTest()
 		cout << "Send name error +++" << endl;
 	}
 
-	// �����ļ��ܳ���
+	// 发送文件总长度
 	cout << "send file_size = " << filesize << endl;
 	ret = cClient.Send((char*)&filesize, sizeof(unsigned long long) + 1);
 	if (ret <= 0)
@@ -94,7 +104,7 @@ int fopenTest()
 		cout << "Send file data len error +++" << endl;
 	}
 
-	//  ѭ�������ļ�
+	//  循环发送文件
 	char buf[SEND_BLOCK_LEN] = { 0 };
 	int size = sizeof(buf);
 
@@ -102,7 +112,7 @@ int fopenTest()
 	int sendcount = 0;
 	for (;;)
 	{
-		int len = fread(buf, 1, size, m_fp); // �Ƚ��ļ����ݶ�ȡ��buf��
+		int len = fread(buf, 1, size, m_fp); // 先将文件数据读取到buf中
 		if (len < 0)
 		{
 			error = true;
@@ -138,7 +148,7 @@ int fopenTest()
 		if (continueBuf == strTemp1)
 		{
 			// 1024 = 1024 * 1024 / SEND_BLOCK_LEN
-			if (sendcount % 1024 == 0) // 1024 * 1024 �պ���1��
+			if (sendcount % 1024 == 0) // 1024 * 1024 刚好是1兆。每发送1024字节，就等待服务器回复。
 			{
 				cout << "Has been sent " << ++nSendSize << " Mb ......" << endl;
 			}
