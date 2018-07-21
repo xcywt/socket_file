@@ -25,9 +25,18 @@ bool xcyHttpClient::Start(XTcp client)
 	sth.detach();
 	return true;
 }
-#define SEND_BLOCK_LEN 1024
+#define SEND_BLOCK_LEN 1024 // 这里是每次读取socket的大小，如果把这个改大。会提高传输速度。但是有时会导致传输失败
 #define SAVE_FILE_NAME_LEN 256
-
+/*
+这个流程跟客户端要对应：
+1）先接收“Begin”
+2）接收文件名字长度
+3）接收文件名
+4）根据上面的文件名创建文件
+5）接收文件长度
+6）循环接收数据，并且写入文件
+7）接收“End”
+*/
 void xcyHttpClient::Main()
 {
 	char buf[SEND_BLOCK_LEN] = { 0 };
