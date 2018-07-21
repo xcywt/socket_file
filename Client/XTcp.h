@@ -4,7 +4,9 @@
 
 #include <string>
 std::string GetIpByHost(std::string host);
-
+/*
+这里是封装的socket类。Recv可以接收指定字节的数据。Send可以发送指定字节的数据。
+*/
 class  XTcp
 {
 public:
