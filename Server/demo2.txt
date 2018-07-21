@@ -1,0 +1,19 @@
+﻿12345678901234567890
+#pragma warning(disable:4996)
+#include "XTcp.h"
+#include "XHttpServer.h"
+#include <iostream>
+#include <windows.h>
+using namespace std;
+
+int main()
+{
+	cout << "Json Server +++" << endl;
+	XHttpServer server;
+	server.Start(8080);
+	while (1)
+	{
+		Sleep(1000);
+	}
+	return 0;
+}
